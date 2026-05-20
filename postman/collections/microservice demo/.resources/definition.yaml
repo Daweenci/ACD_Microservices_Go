@@ -1,0 +1,11 @@
+$kind: collection
+name: 'Microservice Demo'
+description: 'Simple demo flow for auth and order microservices running locally.'
+variables:
+  - key: auth_base_url
+    value: 'http://localhost:8081'
+  - key: order_base_url
+    value: 'http://localhost:8082'
+  - key: jwt
+    value: ''
+    description: 'Paste the JWT from Login response here before sending protected requests.'

@@ -1,0 +1,8 @@
+$kind: http-request
+name: Validate Token
+method: GET
+url: '{{auth_base_url}}/validate'
+order: 3000
+headers:
+  - key: Authorization
+    value: 'Bearer {{jwt}}'

@@ -47,6 +47,7 @@ services:
       DB_NAME: authdb
       JWT_SECRET: super-secret-jwt-key-change-in-prod
       PORT: 8081
+      SHOP_SERVICE_URL: http://shop-service:8082
     ports:
       - "8081:8081"
     depends_on:
@@ -55,31 +56,31 @@ services:
       - microservices-net
 
   # ─── Microservice: Orders ──────────────────────────────────────────
-  order-service:
+  shop-service:
     build:
-      context: ./order-service
+      context: ./shop-service
       dockerfile: Dockerfile
-    container_name: order-service
+    container_name: shop-service
     restart: unless-stopped
     environment:
-      DB_HOST: order-db
+      DB_HOST: shop-db
       DB_PORT: 5432
-      DB_USER: orderuser
-      DB_PASSWORD: orderpass
-      DB_NAME: orderdb
+      DB_USER: shopuser
+      DB_PASSWORD: shoppass
+      DB_NAME: shopdb
       AUTH_SERVICE_URL: http://auth-service:8081
       PORT: 8082
     ports:
       - "8082:8082"
     depends_on:
-      - order-db
+      - shop-db
       - auth-service
     networks:
       - microservices-net
 
 volumes:
   auth-db-data:
-  order-db-data:
+  shop-db-data:
 
 networks:
   microservices-net:

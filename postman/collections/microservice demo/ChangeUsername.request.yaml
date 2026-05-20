@@ -1,0 +1,17 @@
+$kind: http-request
+name: Add to Cart
+method: POST
+url: '{{shop_base_url}}/cart'
+order: 5000
+headers:
+  - key: Authorization
+    value: 'Bearer {{jwt}}'
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "shop_item_id": 1,
+      "quantity": 1
+    }

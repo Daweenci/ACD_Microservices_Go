@@ -1,0 +1,8 @@
+$kind: http-request
+name: Remove from Cart
+method: DELETE
+url: '{{shop_base_url}}/cart/item/1'
+order: 5300
+headers:
+  - key: Authorization
+    value: 'Bearer {{jwt}}'

@@ -28,9 +28,11 @@ func main() {
 	router := http.NewServeMux()
 	h := handler.NewAuthHandler(db)
 
-	router.HandleFunc("/register", h.Register)      // POST
-	router.HandleFunc("/login", h.Login)            // POST
-	router.HandleFunc("/validate", h.ValidateToken) // GET
+	router.HandleFunc("/register", h.Register)            // POST
+	router.HandleFunc("/login", h.Login)                  // POST
+	router.HandleFunc("/validate", h.ValidateToken)       // GET
+	router.HandleFunc("/user", h.DeleteUser)              // DELETE
+	router.HandleFunc("/user/username", h.ChangeUsername) // PATCH
 
 	port := getEnv("PORT", "8081")
 	log.Printf("Auth-Service läuft auf http://localhost:%s", port)

@@ -1,0 +1,8 @@
+$kind: http-request
+name: Delete User
+method: DELETE
+url: '{{auth_base_url}}/user'
+order: 3200
+headers:
+  - key: Authorization
+    value: 'Bearer {{jwt}}'

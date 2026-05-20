@@ -5,17 +5,14 @@ import (
 	"database/sql"
 )
 
-// PostgresUserRepository implementiert core.UserRepository mit PostgreSQL.
 type PostgresUserRepository struct {
 	db *sql.DB
 }
 
-// NewPostgresUserRepository erstellt eine neue Instanz.
 func NewPostgresUserRepository(db *sql.DB) *PostgresUserRepository {
 	return &PostgresUserRepository{db: db}
 }
 
-// Create speichert einen neuen Benutzer in der Datenbank.
 func (r *PostgresUserRepository) Create(u *core.User) error {
 	query := `
 		INSERT INTO users (username, email, password)
@@ -25,7 +22,6 @@ func (r *PostgresUserRepository) Create(u *core.User) error {
 		Scan(&u.ID, &u.CreatedAt)
 }
 
-// FindByEmail sucht einen Benutzer anhand seiner E-Mail-Adresse.
 func (r *PostgresUserRepository) FindByEmail(email string) (*core.User, error) {
 	u := &core.User{}
 	query := `SELECT id, username, email, password, created_at FROM users WHERE email = $1`
@@ -37,7 +33,6 @@ func (r *PostgresUserRepository) FindByEmail(email string) (*core.User, error) {
 	return u, nil
 }
 
-// FindByUsername sucht einen Benutzer anhand seines Benutzernamens.
 func (r *PostgresUserRepository) FindByUsername(username string) (*core.User, error) {
 	u := &core.User{}
 	query := `SELECT id, username, email, password, created_at FROM users WHERE username = $1`
@@ -47,4 +42,25 @@ func (r *PostgresUserRepository) FindByUsername(username string) (*core.User, er
 		return nil, err
 	}
 	return u, nil
+}
+
+func (r *PostgresUserRepository) FindByID(id int) (*core.User, error) {
+	u := &core.User{}
+	query := `SELECT id, username, email, password, created_at FROM users WHERE id = $1`
+	err := r.db.QueryRow(query, id).
+		Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
+func (r *PostgresUserRepository) Delete(id int) error {
+	_, err := r.db.Exec(`DELETE FROM users WHERE id = $1`, id)
+	return err
+}
+
+func (r *PostgresUserRepository) UpdateUsername(id int, newUsername string) error {
+	_, err := r.db.Exec(`UPDATE users SET username = $1 WHERE id = $2`, newUsername, id)
+	return err
 }

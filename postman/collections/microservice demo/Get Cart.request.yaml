@@ -1,0 +1,7 @@
+$kind: http-request
+method: GET
+url: '{{order_base_url}}/orders'
+order: 5000
+headers:
+  - key: Authorization
+    value: 'Bearer {{jwt}}'
