@@ -1,0 +1,88 @@
+version: "3.9"
+
+services:
+
+  # ─── Datenbank: Auth ───────────────────────────────────────────────
+  auth-db:
+    image: postgres:16-alpine
+    container_name: auth-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: authuser
+      POSTGRES_PASSWORD: authpass
+      POSTGRES_DB: authdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+
+  # ─── Datenbank: Orders ─────────────────────────────────────────────
+  order-db:
+    image: postgres:16-alpine
+    container_name: order-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: orderuser
+      POSTGRES_PASSWORD: orderpass
+      POSTGRES_DB: orderdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+
+  # ─── Microservice: Auth ────────────────────────────────────────────
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_USER: authuser
+      DB_PASSWORD: authpass
+      DB_NAME: authdb
+      JWT_SECRET: super-secret-jwt-key-change-in-prod
+      PORT: 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      - auth-db
+    networks:
+      - microservices-net
+
+  # ─── Microservice: Orders ──────────────────────────────────────────
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: order-db
+      DB_PORT: 5432
+      DB_USER: orderuser
+      DB_PASSWORD: orderpass
+      DB_NAME: orderdb
+      AUTH_SERVICE_URL: http://auth-service:8081
+      PORT: 8082
+    ports:
+      - "8082:8082"
+    depends_on:
+      - order-db
+      - auth-service
+    networks:
+      - microservices-net
+
+volumes:
+  auth-db-data:
+  order-db-data:
+
+networks:
+  microservices-net:
+    driver: bridge
