@@ -6,9 +6,9 @@ services:
     container_name: auth-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: authuser
-      POSTGRES_PASSWORD: authpass
-      POSTGRES_DB: authdb
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+      POSTGRES_DB: ${AUTH_DB_NAME}
     ports:
       - "5432:5432"
     volumes:
@@ -16,15 +16,15 @@ services:
     networks:
       - microservices-net
 
-  # ─── Datenbank: Shop ─────────────────────────────────────────────
+  # ─── Datenbank: Shop ──────────────────────────────────────────────
   shop-db:
     image: postgres:16-alpine
     container_name: shop-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: shopuser
-      POSTGRES_PASSWORD: shoppass
-      POSTGRES_DB: shopdb
+      POSTGRES_USER: ${SHOP_DB_USER}
+      POSTGRES_PASSWORD: ${SHOP_DB_PASSWORD}
+      POSTGRES_DB: ${SHOP_DB_NAME}
     ports:
       - "5433:5432"
     volumes:
@@ -42,12 +42,11 @@ services:
     environment:
       DB_HOST: auth-db
       DB_PORT: 5432
-      DB_USER: authuser
-      DB_PASSWORD: authpass
-      DB_NAME: authdb
-      JWT_SECRET: super-secret-jwt-key-change-in-prod
+      DB_USER: ${AUTH_DB_USER}
+      DB_PASSWORD: ${AUTH_DB_PASSWORD}
+      DB_NAME: ${AUTH_DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
       PORT: 8081
-      SHOP_SERVICE_URL: http://shop-service:8082
     ports:
       - "8081:8081"
     depends_on:
@@ -55,7 +54,7 @@ services:
     networks:
       - microservices-net
 
-  # ─── Microservice: Orders ──────────────────────────────────────────
+  # ─── Microservice: Shop ────────────────────────────────────────────
   shop-service:
     build:
       context: ./shop-service
@@ -65,9 +64,9 @@ services:
     environment:
       DB_HOST: shop-db
       DB_PORT: 5432
-      DB_USER: shopuser
-      DB_PASSWORD: shoppass
-      DB_NAME: shopdb
+      DB_USER: ${SHOP_DB_USER}
+      DB_PASSWORD: ${SHOP_DB_PASSWORD}
+      DB_NAME: ${SHOP_DB_NAME}
       AUTH_SERVICE_URL: http://auth-service:8081
       PORT: 8082
     ports:

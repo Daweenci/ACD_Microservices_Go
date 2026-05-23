@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
-	"os"
 	"strings"
 )
 
@@ -122,14 +121,6 @@ func (h *AuthHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if err := h.service.DeleteUser(userID); err != nil {
 		writeError(w, "benutzer konnte nicht gelöscht werden", http.StatusInternalServerError)
 		return
-	}
-
-	// Orchestration: Warenkorb im Shop-Service leeren (Best-effort)
-	shopURL := os.Getenv("SHOP_SERVICE_URL")
-	if shopURL != "" {
-		req, _ := http.NewRequest(http.MethodDelete, shopURL+"/cart", nil)
-		req.Header.Set("Authorization", r.Header.Get("Authorization"))
-		http.DefaultClient.Do(req)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
