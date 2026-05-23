@@ -9,6 +9,6 @@ body:
   type: json
   content: |-
     {
-      "email": "david@example.com",
+      "identifier": "maxneu",
       "password": "123456"
     }

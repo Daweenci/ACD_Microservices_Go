@@ -4,7 +4,7 @@ description: 'Simple demo flow for auth and order microservices running locally.
 variables:
   - key: auth_base_url
     value: 'http://localhost:8081'
-  - key: order_base_url
+  - key: cart_base_url
     value: 'http://localhost:8082'
   - key: jwt
     value: ''

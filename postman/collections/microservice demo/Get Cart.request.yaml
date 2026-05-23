@@ -1,6 +1,6 @@
 $kind: http-request
 method: GET
-url: '{{order_base_url}}/orders'
+url: '{{cart_base_url}}/cart'
 order: 5000
 headers:
   - key: Authorization

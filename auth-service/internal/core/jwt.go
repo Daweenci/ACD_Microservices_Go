@@ -14,10 +14,8 @@ func generateJWT(user *User) (string, error) {
 		secret = "dev-secret"
 	}
 	claims := jwt.MapClaims{
-		"user_id":  user.ID,
-		"username": user.Username,
-		"email":    user.Email,
-		"exp":      time.Now().Add(24 * time.Hour).Unix(),
+		"user_id": user.ID,
+		"exp":     time.Now().Add(24 * time.Hour).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))

@@ -44,9 +44,6 @@ func (s *CartService) UpdateCartItem(userID, itemID, delta int) error {
 
 	existing, err := s.repo.GetEntry(userID, itemID)
 	if err != nil || existing == nil {
-		if delta > 0 {
-			return s.repo.Add(userID, itemID, delta)
-		}
 		return errors.New("item nicht im warenkorb")
 	}
 
@@ -59,6 +56,10 @@ func (s *CartService) UpdateCartItem(userID, itemID, delta int) error {
 
 // RemoveFromCart entfernt einen Warenkorbeintrag vollständig.
 func (s *CartService) RemoveFromCart(userID, itemID int) error {
+	existing, err := s.repo.GetEntry(userID, itemID)
+	if err != nil || existing == nil {
+		return errors.New("item nicht im warenkorb")
+	}
 	return s.repo.RemoveEntry(userID, itemID)
 }
 

@@ -1,16 +1,14 @@
 $kind: http-request
 name: Update Cart Item
 method: PATCH
-url: '{{shop_base_url}}/cart/item/1'
+url: "{{cart_base_url}}/cart/item/1"
 order: 5200
 headers:
-  - key: Authorization
-    value: 'Bearer {{jwt}}'
-  - key: Content-Type
-    value: application/json
+  Authorization: Bearer {{jwt}}
+  Content-Type: application/json
 body:
   type: json
   content: |-
     {
-      "quantity": 2
+      "delta": 100
     }

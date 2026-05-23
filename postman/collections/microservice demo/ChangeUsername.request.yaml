@@ -1,17 +1,14 @@
 $kind: http-request
-name: Add to Cart
-method: POST
-url: '{{shop_base_url}}/cart'
-order: 5000
+name: Change Username
+method: PATCH
+url: "{{auth_base_url}}/user/username"
+order: 3100
 headers:
-  - key: Authorization
-    value: 'Bearer {{jwt}}'
-  - key: Content-Type
-    value: application/json
+  Authorization: Bearer {{jwt}}
+  Content-Type: application/json
 body:
   type: json
   content: |-
     {
-      "shop_item_id": 1,
-      "quantity": 1
+      "new_username": "maxneu"
     }
