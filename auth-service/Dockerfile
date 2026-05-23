@@ -17,7 +17,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o auth-service ./cmd/main.go
 
 # ── Stage 2: Minimaler Container (FROM scratch) ───────────────────────
-# Enthält NUR das Binary – wie im Artikel beschrieben (~7 MB)
+# Enthält NUR das Binary
 FROM scratch
 
 COPY --from=builder /build/auth-service /app/auth-service

@@ -16,19 +16,19 @@ services:
     networks:
       - microservices-net
 
-  # ─── Datenbank: Orders ─────────────────────────────────────────────
-  order-db:
+  # ─── Datenbank: Shop ─────────────────────────────────────────────
+  shop-db:
     image: postgres:16-alpine
-    container_name: order-db
+    container_name: shop-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: orderuser
-      POSTGRES_PASSWORD: orderpass
-      POSTGRES_DB: orderdb
+      POSTGRES_USER: shopuser
+      POSTGRES_PASSWORD: shoppass
+      POSTGRES_DB: shopdb
     ports:
       - "5433:5432"
     volumes:
-      - order-db-data:/var/lib/postgresql/data
+      - shop-db-data:/var/lib/postgresql/data
     networks:
       - microservices-net
 
