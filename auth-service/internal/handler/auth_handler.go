@@ -91,7 +91,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// GET /validate  – wird vom Order-Service aufgerufen
+// GET /validate  – direkte Token-Validierung, kein Datenbankaufruf nötig
 func (h *AuthHandler) ValidateToken(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeError(w, "nur GET erlaubt", http.StatusMethodNotAllowed)
@@ -106,7 +106,7 @@ func (h *AuthHandler) ValidateToken(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(claims)
 }
 
-// DELETE /user  – löscht den eingeloggten Benutzer und versucht seinen Warenkorb zu leeren (JWT required)
+// DELETE /user  – löscht den eingeloggten Benutzer (JWT required)
 func (h *AuthHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		writeError(w, "nur DELETE erlaubt", http.StatusMethodNotAllowed)
@@ -122,7 +122,6 @@ func (h *AuthHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		writeError(w, "benutzer konnte nicht gelöscht werden", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(messageResponse{Message: "benutzer erfolgreich gelöscht"})
 }

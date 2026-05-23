@@ -16,19 +16,19 @@ services:
     networks:
       - microservices-net
 
-  # ─── Datenbank: Shop ──────────────────────────────────────────────
-  shop-db:
+  # ─── Datenbank: Cart ──────────────────────────────────────────────
+  cart-db:
     image: postgres:16-alpine
-    container_name: shop-db
+    container_name: cart-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${SHOP_DB_USER}
-      POSTGRES_PASSWORD: ${SHOP_DB_PASSWORD}
-      POSTGRES_DB: ${SHOP_DB_NAME}
+      POSTGRES_USER: ${CART_DB_USER}
+      POSTGRES_PASSWORD: ${CART_DB_PASSWORD}
+      POSTGRES_DB: ${CART_DB_NAME}
     ports:
       - "5433:5432"
     volumes:
-      - shop-db-data:/var/lib/postgresql/data
+      - cart-db-data:/var/lib/postgresql/data
     networks:
       - microservices-net
 
@@ -54,32 +54,31 @@ services:
     networks:
       - microservices-net
 
-  # ─── Microservice: Shop ────────────────────────────────────────────
-  shop-service:
+  # ─── Microservice: Cart ────────────────────────────────────────────
+  cart-service:
     build:
-      context: ./shop-service
+      context: ./cart-service
       dockerfile: Dockerfile
-    container_name: shop-service
+    container_name: cart-service
     restart: unless-stopped
     environment:
-      DB_HOST: shop-db
+      DB_HOST: cart-db
       DB_PORT: 5432
-      DB_USER: ${SHOP_DB_USER}
-      DB_PASSWORD: ${SHOP_DB_PASSWORD}
-      DB_NAME: ${SHOP_DB_NAME}
-      AUTH_SERVICE_URL: http://auth-service:8081
+      DB_USER: ${CART_DB_USER}
+      DB_PASSWORD: ${CART_DB_PASSWORD}
+      DB_NAME: ${CART_DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
       PORT: 8082
     ports:
       - "8082:8082"
     depends_on:
-      - shop-db
-      - auth-service
+      - cart-db
     networks:
       - microservices-net
 
 volumes:
   auth-db-data:
-  shop-db-data:
+  cart-db-data:
 
 networks:
   microservices-net:
