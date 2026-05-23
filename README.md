@@ -1,130 +1,192 @@
-# Microservices mit Go – Projektübersicht
+# Microservices mit Go und Docker
+
+Auth- und Warenkorb-Service als Docker-Compose-Setup.
 
 ## Architektur (4 Container)
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                   Docker Network                        │
-│                                                         │
-│  ┌──────────────┐      ┌──────────────────────────┐     │
-│  │   auth-db    │◄────►│     auth-service :8081   │     │
-│  │ PostgreSQL   │      │  /register  /login       │     │
-│  │   :5432      │      │  /validate               │     │
-│  └──────────────┘      └──────────┬───────────────┘     │
-│                                   │ prüft JWT           │
-│  ┌──────────────┐      ┌──────────▼───────────────┐     │
-│  │  shop-db     │◄────►│    shop-service :8082    │     │
-│  │ PostgreSQL   │      │  GET/POST /shop          │     │
-│  │   :5433      │      │  (braucht gültiges JWT)  │     │
-│  └──────────────┘      └──────────────────────────┘     │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                      Docker Network                         │
+│                                                             │
+│  ┌──────────────┐      ┌────────────────────────────────┐   │
+│  │   auth-db    │◄────►│       auth-service :8081       │   │
+│  │  PostgreSQL  │      │  /register  /login  /validate  │   │
+│  │    :5432     │      │  /user      /user/username     │   │
+│  └──────────────┘      └────────────────────────────────┘   │
+│                                                             │
+│  ┌──────────────┐      ┌────────────────────────────────┐   │
+│  │   cart-db    │◄────►│       cart-service :8082       │   │
+│  │  PostgreSQL  │      │  /cart      /cart/item/{id}    │   │
+│  │    :5433     │      │  (JWT lokal validiert)         │   │
+│  └──────────────┘      └────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
 ```
+
+Der Cart-Service validiert JWTs **lokal** anhand des gemeinsamen `JWT_SECRET` – ohne Netzwerkaufruf an den Auth-Service.
 
 ## Dateistruktur
 
 ```
-microservices-project/
+microservices-go/
 ├── docker-compose.yml
+├── .env                          ← nicht eingecheckt
+├── .env.example                  ← Vorlage
 ├── auth-service/
 │   ├── Dockerfile
 │   ├── go.mod
 │   └── cmd/
-│       └── main.go                  ← Einstiegspunkt + Router
+│       └── main.go               ← Einstiegspunkt + Router
 │   └── internal/
 │       ├── core/
-│       │   ├── user.go              ← Domain-Typen + Interface
-│       │   └── auth_service.go      ← Geschäftslogik (Onion-Kern)
+│       │   ├── user.go           ← Domain-Typen + Interface
+│       │   ├── auth_service.go   ← Geschäftslogik
+│       │   └── jwt.go            ← Token ausstellen + validieren
 │       ├── repository/
-│       │   └── postgres_user_repo.go← DB-Implementierung
+│       │   └── postgres_user_repo.go
 │       └── handler/
-│           └── auth_handler.go      ← HTTP-Handler
-└── shop-service/
+│           └── auth_handler.go
+└── cart-service/
     ├── Dockerfile
     ├── go.mod
     └── cmd/
         └── main.go
     └── internal/
         ├── core/
-        │   ├── shop.go
-        │   └── shop_service.go
+        │   ├── cart.go           ← Domain-Typen + Interface
+        │   ├── cart_service.go   ← Geschäftslogik
+        │   └── jwt.go            ← lokale Token-Validierung
         ├── repository/
-        │   └── postgres_shop_repo.go
+        │   └── postgres_cart_repo.go
         └── handler/
-            └── shop_handler.go     ← validiert JWT via auth-service
+            └── cart_handler.go
 ```
 
-## Architektur-Pattern
+## Setup
 
-Das Projekt folgt der **Onion-Architektur**:
-
-- **`core/`** – Geschäftslogik ohne technische Abhängigkeiten
-- **`repository/`** – Datenbankzugriff implementiert das Interface aus core
-- **`handler/`** – HTTP-Schicht, kennt nur core
-- **`cmd/main.go`** – Startpunkt, Router (identisch zum Artikel-Pattern)
-
-Der Order-Service nutzt das **Proxy-Pattern**: Er kennt die JWT-Logik nicht
-selbst, sondern delegiert die Validierung an den Auth-Service (`/validate`).
-
-## Starten
+### 1. `.env` anlegen
 
 ```bash
-# Alle 4 Container starten
-docker-compose up --build
-
-# Nur im Hintergrund
-docker-compose up --build -d
+cp .env.example .env
 ```
 
-## API-Verwendung (curl-Beispiele)
+Werte nach Bedarf anpassen.
 
-### 1. Registrieren
+### 2. Starten
+
+```bash
+docker-compose up --build
+```
+
+### 3. Im Hintergrund
+
+```bash
+docker-compose up --build -d
+docker-compose down
+```
+
+## API
+
+### Auth-Service (Port 8081)
+
+#### Registrieren
 ```bash
 curl -X POST http://localhost:8081/register \
   -H "Content-Type: application/json" \
   -d '{"username":"max","email":"max@example.com","password":"geheim123"}'
 ```
 
-### 2. Einloggen → Token erhalten
+#### Einloggen
 ```bash
 curl -X POST http://localhost:8081/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"max@example.com","password":"geheim123"}'
+  -d '{"identifier":"max","password":"geheim123"}'
 
-# Antwort: {"token":"eyJhbGci...","message":"Login erfolgreich"}
+# Antwort: {"token":"eyJhbGci...","message":"login erfolgreich"}
 ```
 
-### 3. Token speichern
+`identifier` kann E-Mail-Adresse oder Benutzername sein.
+
+#### Token speichern
 ```bash
-TOKEN="eyJhbGci..."  # aus der Login-Antwort
+TOKEN="eyJhbGci..."
 ```
 
-### 4. Bestellung anlegen (braucht Token)
+#### Benutzernamen ändern
 ```bash
-curl -X POST http://localhost:8082/orders \
+curl -X PATCH http://localhost:8081/user/username \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"item":"Laptop","quantity":1}'
+  -d '{"new_username":"maxneu"}'
 ```
 
-### 5. Bestellungen abrufen
+#### Benutzer löschen
 ```bash
-curl http://localhost:8082/orders \
+curl -X DELETE http://localhost:8081/user \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-### 6. Token direkt validieren
+#### Token validieren (Debug)
 ```bash
 curl http://localhost:8081/validate \
   -H "Authorization: Bearer $TOKEN"
 ```
 
+---
+
+### Cart-Service (Port 8082)
+
+Alle Endpunkte erfordern einen gültigen JWT im `Authorization: Bearer`-Header.
+
+#### Warenkorb abrufen
+```bash
+curl http://localhost:8082/cart \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Item hinzufügen
+```bash
+curl -X POST http://localhost:8082/cart \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"item_id":42,"quantity":2}'
+```
+
+Existiert das Item bereits, wird die Menge erhöht.
+
+#### Menge anpassen (Delta)
+```bash
+# +1 hinzufügen
+curl -X PATCH http://localhost:8082/cart/item/42 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"delta":1}'
+
+# 1 entfernen
+curl -X PATCH http://localhost:8082/cart/item/42 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"delta":-1}'
+```
+
+Fällt die Menge auf 0 oder darunter, wird der Eintrag automatisch gelöscht.
+
+#### Item komplett entfernen
+```bash
+curl -X DELETE http://localhost:8082/cart/item/42 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Warenkorb leeren
+```bash
+curl -X DELETE http://localhost:8082/cart \
+  -H "Authorization: Bearer $TOKEN"
+```
+
 ## go.sum erzeugen
 
-Da go.sum-Dateien nicht eingecheckt sind, einmalig ausführen:
+Falls nötig (passiert automatisch beim Docker-Build):
 
 ```bash
 cd auth-service && go mod tidy
-cd ../order-service && go mod tidy
+cd ../cart-service && go mod tidy
 ```
-
-Oder direkt mit Docker bauen – das passiert automatisch im Builder-Stage.
