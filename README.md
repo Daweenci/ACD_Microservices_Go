@@ -6,17 +6,17 @@
 ┌─────────────────────────────────────────────────────────┐
 │                   Docker Network                        │
 │                                                         │
-│  ┌──────────────┐      ┌──────────────────────────┐    │
-│  │   auth-db    │◄────►│     auth-service :8081   │    │
-│  │ PostgreSQL   │      │  /register  /login        │    │
-│  │   :5432      │      │  /validate                │    │
-│  └──────────────┘      └──────────┬───────────────┘    │
+│  ┌──────────────┐      ┌──────────────────────────┐     │
+│  │   auth-db    │◄────►│     auth-service :8081   │     │
+│  │ PostgreSQL   │      │  /register  /login       │     │
+│  │   :5432      │      │  /validate               │     │
+│  └──────────────┘      └──────────┬───────────────┘     │
 │                                   │ prüft JWT           │
-│  ┌──────────────┐      ┌──────────▼───────────────┐    │
-│  │  order-db    │◄────►│    order-service :8082   │    │
-│  │ PostgreSQL   │      │  GET/POST /orders         │    │
-│  │   :5433      │      │  (braucht gültiges JWT)   │    │
-│  └──────────────┘      └──────────────────────────┘    │
+│  ┌──────────────┐      ┌──────────▼───────────────┐     │
+│  │  shop-db     │◄────►│    shop-service :8082    │     │
+│  │ PostgreSQL   │      │  GET/POST /shop          │     │
+│  │   :5433      │      │  (braucht gültiges JWT)  │     │
+│  └──────────────┘      └──────────────────────────┘     │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -38,19 +38,19 @@ microservices-project/
 │       │   └── postgres_user_repo.go← DB-Implementierung
 │       └── handler/
 │           └── auth_handler.go      ← HTTP-Handler
-└── order-service/
+└── shop-service/
     ├── Dockerfile
     ├── go.mod
     └── cmd/
         └── main.go
     └── internal/
         ├── core/
-        │   ├── order.go
-        │   └── order_service.go
+        │   ├── shop.go
+        │   └── shop_service.go
         ├── repository/
-        │   └── postgres_order_repo.go
+        │   └── postgres_shop_repo.go
         └── handler/
-            └── order_handler.go     ← validiert JWT via auth-service
+            └── shop_handler.go     ← validiert JWT via auth-service
 ```
 
 ## Architektur-Pattern
