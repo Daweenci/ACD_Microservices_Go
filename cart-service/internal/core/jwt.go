@@ -9,15 +9,15 @@ import (
 
 // ValidateJWT validiert einen JWT-Token lokal anhand des gemeinsamen Secrets.
 func ValidateJWT(tokenString string) (jwt.MapClaims, error) {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		secret = "dev-secret"
+	publicKey := os.Getenv("JWT_PUBLIC_KEY")
+	if publicKey == "" {
+		publicKey = "dev-public-key"
 	}
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("ungültige signaturmethode")
 		}
-		return []byte(secret), nil
+		return []byte(publicKey), nil
 	})
 	if err != nil {
 		return nil, err

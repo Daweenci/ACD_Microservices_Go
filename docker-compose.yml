@@ -45,7 +45,8 @@ services:
       DB_USER: ${AUTH_DB_USER}
       DB_PASSWORD: ${AUTH_DB_PASSWORD}
       DB_NAME: ${AUTH_DB_NAME}
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
       PORT: 8081
     ports:
       - "8081:8081"
@@ -67,7 +68,8 @@ services:
       DB_USER: ${CART_DB_USER}
       DB_PASSWORD: ${CART_DB_PASSWORD}
       DB_NAME: ${CART_DB_NAME}
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
       PORT: 8082
     ports:
       - "8082:8082"
