@@ -1,0 +1,5 @@
+$kind: http-request
+name: Auth Health Check
+method: GET
+url: "{{auth_base_url}}/health"
+order: 100

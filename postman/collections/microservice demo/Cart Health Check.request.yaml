@@ -1,0 +1,5 @@
+$kind: http-request
+name: Cart Health Check
+method: GET
+url: "{{cart_base_url}}/health"
+order: 101
