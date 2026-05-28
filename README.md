@@ -22,7 +22,7 @@ Auth- und Warenkorb-Service als Docker-Compose-Setup.
 └─────────────────────────────────────────────────────────────┘
 ```
 
-Der Cart-Service validiert JWTs **lokal** anhand des gemeinsamen `JWT_SECRET` – ohne Netzwerkaufruf an den Auth-Service.
+Der Cart-Service validiert JWTs **lokal** anhand des öffentlichen EC-Schlüssels (`JWT_PUBLIC_KEY`) – ohne Netzwerkaufruf an den Auth-Service. Der Auth-Service signiert Token mit dem privaten EC-Schlüssel (`JWT_PRIVATE_KEY`). Kein geteiltes Secret – der Cart-Service kann Token verifizieren, aber nicht selbst ausstellen.
 
 ## Dateistruktur
 
@@ -40,7 +40,7 @@ microservices-go/
 │       ├── core/
 │       │   ├── user.go           ← Domain-Typen + Interface
 │       │   ├── auth_service.go   ← Geschäftslogik
-│       │   └── jwt.go            ← Token ausstellen + validieren
+│       │   └── jwt.go            ← Token ausstellen + validieren (private key)
 │       ├── repository/
 │       │   └── postgres_user_repo.go
 │       └── handler/
@@ -54,7 +54,7 @@ microservices-go/
         ├── core/
         │   ├── cart.go           ← Domain-Typen + Interface
         │   ├── cart_service.go   ← Geschäftslogik
-        │   └── jwt.go            ← lokale Token-Validierung
+        │   └── jwt.go            ← lokale Token-Validierung (public key)
         ├── repository/
         │   └── postgres_cart_repo.go
         └── handler/
@@ -63,21 +63,35 @@ microservices-go/
 
 ## Setup
 
-### 1. `.env` anlegen
+### 1. Schlüsselpaar generieren
+
+```bash
+openssl ecparam -name prime256v1 -genkey -noout -out private.pem
+openssl ec -in private.pem -pubout -out public.pem
+```
+
+Ausgabe für die `.env` als einzeiligen String konvertieren:
+
+```bash
+awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' private.pem
+awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' public.pem
+```
+
+### 2. `.env` anlegen
 
 ```bash
 cp .env.example .env
 ```
 
-Werte nach Bedarf anpassen.
+`JWT_PRIVATE_KEY` und `JWT_PUBLIC_KEY` mit den generierten Schlüsseln befüllen. Die `private.pem` und `public.pem` Dateien können danach gelöscht werden.
 
-### 2. Starten
+### 3. Starten
 
 ```bash
 docker-compose up --build
 ```
 
-### 3. Im Hintergrund
+### 4. Im Hintergrund
 
 ```bash
 docker-compose up --build -d
@@ -89,6 +103,7 @@ docker-compose down
 ### Auth-Service (Port 8081)
 
 #### Registrieren
+
 ```bash
 curl -X POST http://localhost:8081/register \
   -H "Content-Type: application/json" \
@@ -96,6 +111,7 @@ curl -X POST http://localhost:8081/register \
 ```
 
 #### Einloggen
+
 ```bash
 curl -X POST http://localhost:8081/login \
   -H "Content-Type: application/json" \
@@ -107,11 +123,13 @@ curl -X POST http://localhost:8081/login \
 `identifier` kann E-Mail-Adresse oder Benutzername sein.
 
 #### Token speichern
+
 ```bash
 TOKEN="eyJhbGci..."
 ```
 
 #### Benutzernamen ändern
+
 ```bash
 curl -X PATCH http://localhost:8081/user/username \
   -H "Authorization: Bearer $TOKEN" \
@@ -120,12 +138,14 @@ curl -X PATCH http://localhost:8081/user/username \
 ```
 
 #### Benutzer löschen
+
 ```bash
 curl -X DELETE http://localhost:8081/user \
   -H "Authorization: Bearer $TOKEN"
 ```
 
 #### Token validieren (Debug)
+
 ```bash
 curl http://localhost:8081/validate \
   -H "Authorization: Bearer $TOKEN"
@@ -138,12 +158,14 @@ curl http://localhost:8081/validate \
 Alle Endpunkte erfordern einen gültigen JWT im `Authorization: Bearer`-Header.
 
 #### Warenkorb abrufen
+
 ```bash
 curl http://localhost:8082/cart \
   -H "Authorization: Bearer $TOKEN"
 ```
 
 #### Item hinzufügen
+
 ```bash
 curl -X POST http://localhost:8082/cart \
   -H "Authorization: Bearer $TOKEN" \
@@ -154,6 +176,7 @@ curl -X POST http://localhost:8082/cart \
 Existiert das Item bereits, wird die Menge erhöht.
 
 #### Menge anpassen (Delta)
+
 ```bash
 # +1 hinzufügen
 curl -X PATCH http://localhost:8082/cart/item/42 \
@@ -171,12 +194,14 @@ curl -X PATCH http://localhost:8082/cart/item/42 \
 Fällt die Menge auf 0 oder darunter, wird der Eintrag automatisch gelöscht.
 
 #### Item komplett entfernen
+
 ```bash
 curl -X DELETE http://localhost:8082/cart/item/42 \
   -H "Authorization: Bearer $TOKEN"
 ```
 
 #### Warenkorb leeren
+
 ```bash
 curl -X DELETE http://localhost:8082/cart \
   -H "Authorization: Bearer $TOKEN"
