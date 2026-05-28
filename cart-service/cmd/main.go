@@ -47,7 +47,10 @@ func main() {
 			http.Error(w, "methode nicht erlaubt", http.StatusMethodNotAllowed)
 		}
 	})
-
+	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"ok"}`))
+	})
 	port := getEnv("PORT", "8082")
 	log.Printf("Cart-Service läuft auf http://localhost:%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))

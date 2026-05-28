@@ -33,6 +33,10 @@ func main() {
 	router.HandleFunc("/validate", h.ValidateToken)       // GET
 	router.HandleFunc("/user", h.DeleteUser)              // DELETE
 	router.HandleFunc("/user/username", h.ChangeUsername) // PATCH
+	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"ok"}`))
+	})
 
 	port := getEnv("PORT", "8081")
 	log.Printf("Auth-Service läuft auf http://localhost:%s", port)
