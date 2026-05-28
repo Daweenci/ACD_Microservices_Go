@@ -11,12 +11,12 @@ Auth- und Warenkorb-Service als Docker-Compose-Setup.
 │  ┌──────────────┐      ┌────────────────────────────────┐   │
 │  │   auth-db    │◄────►│       auth-service :8081       │   │
 │  │  PostgreSQL  │      │  /register  /login  /validate  │   │
-│  │    :5432     │      │  /user      /user/username     │   │
+│  │    :5432     │      │  /user  /user/username /health │   │
 │  └──────────────┘      └────────────────────────────────┘   │
 │                                                             │
 │  ┌──────────────┐      ┌────────────────────────────────┐   │
 │  │   cart-db    │◄────►│       cart-service :8082       │   │
-│  │  PostgreSQL  │      │  /cart      /cart/item/{id}    │   │
+│  │  PostgreSQL  │      │  /cart  /cart/item/{id} /health│   │
 │  │    :5433     │      │  (JWT lokal validiert)         │   │
 │  └──────────────┘      └────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
@@ -151,6 +151,13 @@ curl http://localhost:8081/validate \
   -H "Authorization: Bearer $TOKEN"
 ```
 
+#### Health-Check
+
+```bash
+curl http://localhost:8081/health
+# Antwort: {"status":"ok"}
+```
+
 ---
 
 ### Cart-Service (Port 8082)
@@ -205,6 +212,13 @@ curl -X DELETE http://localhost:8082/cart/item/42 \
 ```bash
 curl -X DELETE http://localhost:8082/cart \
   -H "Authorization: Bearer $TOKEN"
+```
+
+#### Health-Check
+
+```bash
+curl http://localhost:8082/health
+# Antwort: {"status":"ok"}
 ```
 
 ## go.sum erzeugen

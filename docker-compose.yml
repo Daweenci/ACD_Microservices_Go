@@ -15,11 +15,6 @@ services:
       - auth-db-data:/var/lib/postgresql/data
     networks:
       - microservices-net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER}"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
 
   # ─── Datenbank: Cart ──────────────────────────────────────────────
   cart-db:
@@ -36,11 +31,6 @@ services:
       - cart-db-data:/var/lib/postgresql/data
     networks:
       - microservices-net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${CART_DB_USER}"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
 
   # ─── Microservice: Auth ────────────────────────────────────────────
   auth-service:
@@ -61,15 +51,9 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      auth-db:
-        condition: service_healthy
+      - auth-db
     networks:
       - microservices-net
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/health || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
 
   # ─── Microservice: Cart ────────────────────────────────────────────
   cart-service:
@@ -90,15 +74,9 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      cart-db:
-        condition: service_healthy
+      - cart-db
     networks:
       - microservices-net
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/health || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
 
 volumes:
   auth-db-data:
